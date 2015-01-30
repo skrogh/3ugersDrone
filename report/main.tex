@@ -12,7 +12,7 @@
 Most of the hardware was contructed before the start of the course, mainly
 because we needed a custom PCB fabricated and lead times for PCBs from China are
 unpredictable and can be long.
-Likewise a lot of 3D printing was needed for the frame, and this takes quite
+Additionally, a lot of 3D printing was needed for the frame, which takes quite
 some time (total printing time for the parts used was about 14h, then comes
 part design, prototypes and printer setup).
 
@@ -21,17 +21,23 @@ The main processor of the fligt controller is a \emph{Texas
 Instruments} \emph{TM4C123GH6 tiva series ARM CORTEX M4F} processor.
 This processor was chosen due to ease of use.
 The chip is avaliable from most distributors and cheap development boards,
-\emph{TI Launchpad}s, can be used as debuggers. Further more a huge driver
+\emph{TI Launchpad}s, can be used as debuggers. Furthermore a huge driver
 library (\emph{TivaWare}) for hardware abstraction is available from \emph{TI}s
 webpage.
 
 The flighcontroller has a varity of IO ports: PWM outputs, I2C, CAN, UART,
-analog and digital inpus, a special port for conneting to the \emph{Hardkernel
+analog and digital inputs, a special port for conneting to the \emph{Hardkernel
 oDroid U3} Linux computer via SPI, SPI connection for a radio module, and
 onboard IMU (\emph{Invensense mpu9250}) and barometer (\emph{Freescale
 MPL3115A2}).
+\begin{figure}
+	\centering
+	\includegraphics[width=0.7\textwidth]{./picture/flightcontroller.JPG}
+	\caption{The populated flight controller PCB.}
+	\label{fig:flightcontroller}
+\end{figure}
 
-A close-up of the populated fligtcontroller PCB can be seen in figure
+A close-up of the populated flight controller PCB can be seen in figure
 \ref{fig:flightcontroller}. Note that not all IO modules are populated with the
 needed parts. Some mistakes were made in the layout, and thus had to be fixed
 (pink wire nest).
@@ -48,21 +54,28 @@ steering commands to the flight controller.
 A picture of the crude radio remote controller can be seen in figure
 \ref{fig:remote}
 
+\begin{figure}
+	\centering
+	\includegraphics[width=0.7\textwidth]{./picture/remote.JPG}
+	\caption{The remote control with analog joysticks and status screen.}
+	\label{fig:remote}
+\end{figure}
+
 \subsection{ Motors, ESCs, propellers }
-Motors and motor drivers were bought from china. The \emph{EMAX MT1806} motors
-and reccomended drivers for those were chosen due to good reviews from
+The \emph{EMAX MT1806} motors
+and recommended drivers for those were chosen due to good reviews from
 hobbyists. Likewise 5030 carbonfiber propellers were chosen, as they are the
-reccomended propellers for motors of this size.
+recomended propellers for motors of this size.
 
 \section{ System identification } %change title?
 While the differential equations governing attitude are highly nonlinear,
-they can be linearized about a working-point, where the angular speed is zero.
+they can be linearized about an operating point, where the angular speed is zero.
 Thus the gyroscopic effects can be omitted.
 
 The thrust of each motor is assumed to be linear with the control output and the
 retardation can be modelled as a first order lowpass filter.
 
-The differential equations for rotation arround the $x$ and $y$ axes
+The differential equations for rotation around the $x$ and $y$ axes
 becomes:
 \begin{equation}
  \dddiff\theta_x = \frac{1}{\tau_{motor}} \cdot \left(
@@ -76,23 +89,23 @@ becomes:
 \end{equation}
 Where $G_{thrust}$ is the thrust in $N$ produced by a single propeller at full
 thrust, $l_{x}$ is the length from the center of mass to the motors along the
-$x$-axis, $I_{y}$ is the moment of inertia arround the $y$-axis,
+$x$-axis, $I_{y}$ is the moment of inertia around the $y$-axis,
 $\tau_{motor}$ is the time constant of the motor and $u_{[1;4]}$ are motor
 commands for motor $[1;4]$ in the range $[0;1]$.
 
 Local coordinate system for the drone, and motor numbering is chosen as shown in
 figure \ref{fig:axis}
-\stdfig{0.8}{axis}{Choise of local coordinate system and motor numbering for
+\stdfig{0.8}{axis}{Choice of local coordinate system and motor numbering for
 drone}{fig:axis}
 
-If we control the motors in tandem so:
+We control the motors in tandem, so:
 \begin{align}
 u_1 = & u_x - u_y + T\\
 u_2 = & u_x + u_y + T\\
 u_3 = & -u_x + u_y + T\\
 u_4 = & -u_x - u_y + T\\
 \end{align}
-Where T is a general thrust command the equatinos simplify to:
+Where T is a general thrust command the equations simplify to:
 \begin{equation}
  \dddiff\theta_x = \frac{1}{\tau_{motor}} \cdot \left(
  4 u_x G_{thrust} l_{y} \frac{ 1 }{ I_{x} }  - \ddiff\theta_x
@@ -107,7 +120,7 @@ Where T is a general thrust command the equatinos simplify to:
 
 \section{ Sensor filtering } %change title?
 Since the rotating propellers introduce a lot of vibration some sort of
-filtering is required. Clasically mechanical filters (foam and rubber-rings) has
+filtering is required. Clasically mechanical filters (foam and rubber-rings) have
 been used as a solutuion to this problem. We propose using a high-samplerate
 IMU and using a digital filter to supress vibration above the output rate of the
 controller. Assuming that the plant dynamics are temporarily linear, we can
@@ -115,8 +128,8 @@ perform further state estimation on a downsampled version of the IMU- readings,
 allowing for more complex estimators.
 
 As an attitude estimator we use the popular \emph{Madgwick sensor fusion
-algorithm}[http://www.x-io.co.uk/open-source-imu-and-ahrs-algorithms/], which
-fuses measuremenst form a 3-axis gyrope and 3-axis accelerometer. The gyro measuremens are integrated to find the attitude and the
+algorithm}\cite{Madgwick2011}, which
+fuses measuremenst form a 3-axis gyroscope and 3-axis accelerometer. The gyro measuremens are integrated to find the attitude and the
 accelerometer is used to compensate for gyro drift.
 
 The angular acceleration can be estimating by nummerical differentiation of the
@@ -135,10 +148,10 @@ in the local coordinate system: $\vec\omega$ and $\vec\alpha$.
 current and desired angle is calculated}{fig:controller}
 
 The controller for each axis is designed via pole placement, with state
-limmitation, as in [Non-cascaded Dynamic Inversion Design for Quadrotor Position
-Control with L1 Augmentation], but without the refference model.
+limitation, as in~\cite{WangWang} 
+, but without the refference model.
 
-The poles are placed to form a critically dampened $3^{rd}$ system, with tripple
+The poles are placed to form a critically dampened $3^{rd}$ system, with triple
 pole in $\omega$, this system can be seen in figure \ref{fig:controller-no-fix}
 where:
 \begin{align}
@@ -163,83 +176,86 @@ g_2 =1 - \frac{1}{g_1}
 \stdfig{0.9}{controller-fix}{Diagram for controller
 with state limmitation and system}{fig:controller-fix}
 
-Since neither the true gain of the system, or the motor timeconstant are know
-precisly, they must be estimated, $G_e$ and $\tau_{motor,est}$. However as long
+Since neither the true gain of the system, or the motor timeconstant are known
+precisely, they must be estimated as $G_e$ and $\tau_{motor,est}$. However as long
 as the estimated values are close to the real values, and $\tau_{motor,est} \geq
 \tau_{moto}$ and $G_e \leq G$ - that is the system is not estimated to be
 faster, than it acually is - the system is still stabile. %jeg har plots og
 % silieringer der verificere dette, men det fylder.  det kan også vises
 % analytisk%
 
-The only tuning needed is changing $\omega$, $\omega$ must be low enough that
+The only tuning needed is changing $\omega$. $\omega$ must be low so enough that
 the phase shift introduced by the sensor filter is not an issue and low enough
-for the output limmitation no to cause trouble. A value between $10$ and $25$
-seemed good for our drone.
+for the output limmitation not to cause trouble. A value between $10$ and $25$
+seemed good for our quadrotor.
 
 \section{ Results } %change title?
 
-The drone was tethered to the legs of an up-side-down table, so it could only
-roate arround the $y$-axis, for testing the attitude controller.
+The quadrotor was tethered to the legs of an up-side-down table, such that rotation
+was restricted to the $y$-axis, for testing the attitude controller.
 
 It became apparent during testing, that the mechanical vibration was so
-powerfull, that the IMU sensors saturate, resulting in instability due to bad
-state estimation. In figure \ref{fig:omegaNoDamp8k} the gyro measourements
-arround the $y$-axis is plottet. It is very apparent that the measuremens clip
+powerful, that the IMU sensors saturate, resulting in instability due to bad
+state estimation. In figure \ref{fig:omegaNoDamp8k} the gyro measurements
+around the $y$-axis is plotted. It is very apparent that the measurements clip
 at $\pm2^15$ when thrust is increased at about 17s.
 
-\stdfignoscale{omegaNoDamp8k}{Gyro measuremenst arround
+\stdfignoscale{omegaNoDamp8k}{Gyro measuremenst around
 $y$-axis without mechanical filter}{fig:omegaNoDamp8k}
 
-To fix this a quick mechanical filter of earbuds was implemented.
+To fix this, a quick mechanical filter made of foam earbuds was implemented.
 
-In \ref{fig:omegaDamp8k} the raw gyro measurements after the mechanical filter
+In \ref{fig:omegaDamp8k} the raw gyro measurements after adding the mechanical filter
 can be seen. At about 90s the throttle is raised to the same level, that caused
 clipping before.
 
-\stdfignoscale{omegaDamp8k}{Gyro measuremenst arround
+\stdfignoscale{omegaDamp8k}{Gyro measuremenst around
 $y$-axis with mechanical filter}{fig:omegaDamp8k}
 
 While this did solve the vibration problem, it also created some problems.
-Sensor allignment becomes difficout, as the wires to the fligcontroller pulls the
-flightcontroller ascew. Furthermore the mechanical filter has not been
+Sensor allignment becomes difficult, as the wires to the flight controller pulls the
+flight controller ascew. Furthermore the mechanical filter has not been
 modelled, so it's effect on the system is not accouted for.
 Angular acceleration also seemes to suffer from this filter, in figure
-\ref{fig:alphaDamp} and \ref{fig:alphaNoDamp} the angular acceleleration
+\ref{fig:alphaDamp} and \ref{fig:alphaNoDamp} the angular accelleration
 estimate, before the thrust is raised is clearly less noisy for the drone
 without the mechanical filter.
 
-\stdfignoscale{alphaDamp}{Angular acceleration arround the
+\stdfignoscale{alphaDamp}{Angular acceleration around the
 $y$-axis with mechanical filter}{fig:alphaDamp}
-\stdfignoscale{alphaNoDamp}{Angular acceleration arround the
+\stdfignoscale{alphaNoDamp}{Angular acceleration around the
 $y$-axis with mechanical filter}{fig:alphaNoDamp}
 
-However the anglular speed measurements clearly benefit from this filter as seen
+However the angular speed measurements clearly benefit from this filter as seen
 in \ref{fig:omegaDamp} and \ref{fig:omegaNoDamp}
 
-\stdfignoscale{omegaDamp}{Angular speed arround the
+\stdfignoscale{omegaDamp}{Angular speed around the
 $y$-axis with mechanical filter}{fig:omegaDamp}
-\stdfignoscale{omegaNoDamp}{Angular speed arround the
+\stdfignoscale{omegaNoDamp}{Angular speed around the
 $y$-axis with mechanical filter}{fig:omegaNoDamp}
 
 A fix for this could be better balancing of propellers, as cheap propellers are
-often slightly unsymmetrical. Another solution would be to find a more
+often slightly ansymmetrical. Another solution would be to find a more
 predictable alternative for the earbuds.
 
-In figure \ref{fig:thetaDamp} we see the estimated rotation arround the
+In figure \ref{fig:thetaDamp} we see the estimated rotation around the
 $y$-axis for the test with the mechanical filter. Zooming
 (\ref{fig:thetaDampZoom}) in we can get a rough estimate of the bandwith of the
 attitude controller. The input in this region is $[0^o, 45^o, -45^o, 0^o, 45^o,
 0^o]$ and the rise time for the $45^o$ steps are roughly $1/3 s$ while the rise
 time for the $90^o$ step is about $1/2 s$.
 
-\stdfignoscale{thetaDamp}{Rotation arround the
+\stdfignoscale{thetaDamp}{Rotation around the
 $y$-axis with mechanical filter}{fig:thetaDamp}
-\stdfignoscale{thetaNoDamp}{Rotation arround the
+\stdfignoscale{thetaNoDamp}{Rotation around the
 $y$-axis with mechanical filter, zoomed in on area of
 interest.}{fig:thetaNoDamp}
 
 
 A video of the drone in action can be found at: \url{youtu.be/jheuLw_xKc8}
+
+\bibliographystyle{IEEEtran}
+\bibliography{library}
 
 %Novelties:
 %*High sample-rate of acc/gyro, downsampled to remove aliasing.
