@@ -1,0 +1,147 @@
+\input{pre}
+\begin{document}
+\input{frontpage}
+\newpage
+
+%Quick hardware walktrough
+\section{ Introduction }
+
+
+
+\section{Hardware description}
+Most of the hardware was contructed before the start of the course, mainly
+because we needed a custom PCB fabricated and lead times for PCBs from China are
+unpredictable and can be long.
+Likewise a lot of 3D printing was needed for the frame, and this takes quite
+some time (total printing time for the parts used was about 14h, then comes
+part design, prototypes and printer setup).
+
+\subsection{ Flight controller }
+The main processor of the fligt controller is a \emph{Texas
+Instruments} \emph{TM4C123GH6 tiva series ARM CORTEX M4F} processor.
+This processor was chosen due to ease of use.
+The chip is avaliable from most distributors and cheap development boards,
+\emph{TI Launchpad}s, can be used as debuggers. Further more a huge driver
+library (\emph{TivaWare}) for hardware abstraction is available from \emph{TI}s
+webpage.
+
+The flighcontroller has a varity of IO ports: PWM outputs, I2C, CAN, UART,
+analog and digital inpus, a special port for conneting to the \emph{Hardkernel
+oDroid U3} Linux computer via SPI, SPI connection for a radio module, and
+onboard IMU (\emph{Invensense mpu9250}) and barometer (\emph{Freescale
+MPL3115A2}).
+
+A close-up of the populated fligtcontroller PCB can be seen in figure
+\ref{fig:flightcontroller}. Note that not all IO modules are populated with the
+needed parts. Some mistakes were made in the layout, and thus had to be fixed
+(pink wire nest).
+
+\subsection{ Radio }
+We chose the \emph{TI CC1101} $433MHz$ radio module, as this was relativly easy
+to get working.
+
+For non-tethered telemetry a remote controller was contructed, capable of
+sending low amounts of data between the flightcontroller and remote. The remote
+has a USB port for dumping telemetry data to a PC and joystics for sending
+steering commands to the flight controller.
+
+A picture of the crude radio remote controller can be seen in figure
+\ref{fig:remote}
+
+\subsection{ Motors, ESCs, propellers }
+Motors and motor drivers were bought from china. The \emph{EMAX MT1806} motors
+and reccomended drivers for those were chosen due to good reviews from
+hobbyists. Likewise 5030 carbonfiber propellers were chosen, as they are the
+reccomended propellers for motors of this size.
+
+\section{ System identification } %change title?
+While the differential equations governing attitude are highly nonlinear,
+they can be linearized about a working-point, where the angular speed is zero.
+Thus the gyroscopic effects can be omitted.
+
+The thrust of each motor is assumed to be linear with the control output and the
+retardation can be modelled as a first order lowpass filter.
+
+The differential equations for rotation arround the $x$ and $y$ axes
+becomes:
+\begin{equation}
+ \dddiff\theta_x = \frac{1}{\tau_{motor}} \cdot \left(
+ (u_1 + u_2 - u_3 - u_4) G_{thrust} l_{y} \frac{ 1 }{ I_{x} }  - \ddiff\theta_x
+ \right) 
+\end{equation}
+\begin{equation}
+ \dddiff\theta_y = \frac{1}{\tau_{motor}} \cdot \left(
+ (-u_1 + u_2 + u_3 - u_4) G_{thrust} l_{x} \frac{ 1 }{ I_{y} }  - \ddiff\theta_y
+ \right) 
+\end{equation}
+Where $G_{thrust}$ is the thrust in $N$ produced by a single propeller at full
+thrust, $l_{x}$ is the length from the center of mass to the motors along the
+$x$-axis, $I_{y}$ is the moment of inertia arround the $y$-axis,
+$\tau_{motor}$ is the time constant of the motor and $u_{[1;4]}$ are motor
+commands for motor $[1;4]$ in the range $[0;1]$.
+
+Local coordinate system for the drone, and motor numbering is chosen as shown in
+figure \ref{fig:axis}
+\stdfig{0.8}{axis}{Choise of local coordinate system and motor numbering for
+drone}{fig:axis}
+
+If we control the motors in tandem so:
+\begin{align*}
+u_1 = & u_x - u_y + T\\
+u_2 = & u_x + u_y + T\\
+u_3 = & -u_x + u_y + T\\
+u_4 = & -u_x - u_y + T\\
+\end{align*}
+Where T is a general thrust command the equatinos simplify to:
+\begin{equation}
+ \dddiff\theta_x = \frac{1}{\tau_{motor}} \cdot \left(
+ 4 u_x G_{thrust} l_{y} \frac{ 1 }{ I_{x} }  - \ddiff\theta_x
+ \right) 
+\end{equation}
+\begin{equation}
+ \dddiff\theta_y = \frac{1}{\tau_{motor}} \cdot \left(
+4 u_y G_{thrust} l_{x} \frac{ 1 }{ I_{y} }  - \ddiff\theta_y
+ \right) 
+\end{equation}
+
+
+\section{ Sensor filtering } %change title?
+Since the rotating propellers introduce a lot of vibration some sort of
+filtering is required. Clasically mechanical filters (foam and rubber-rings) has
+been used as a solutuion to this problem. We propose using a high-samplerate
+IMU and using a digital filter to supress vibration above the output rate of the
+controller. Assuming that the plant dynamics are temporarily linear, we can
+perform further state estimation on a downsampled version of the IMU- readings,
+allowing for more complex estimators.
+
+As an attitude estimator we use the popular \emph{Madgwic sensor fusion
+algorithm}.
+
+\section{ Controller } %change title?
+
+\section{ Results } %change title?
+
+
+
+%Novelties:
+%*High sample-rate of acc/gyro, downsampled to remove aliasing.
+% This results in propper attitude estimation, while allowing for high amounts
+% of vibration.
+%
+% Mechanical dapening still needed to avoid sensor saturation.
+%
+% - plot of gyro before and after filter
+% - plot of gyro with and widout earbuds
+
+%*Hiding dynamics of rotor-spinup, resulting in easy controller design.
+% - Copter simulink model
+% - Bode plot w/wo controller (inner loop)
+
+%*Controller designed by poleplacement, with state limitations.
+% - Copter simulink model
+% - Bode plot w/wo controller
+
+%Camerastuff?
+
+
+\end{document}
